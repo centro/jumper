@@ -1,0 +1,12 @@
+.idea
+*.iml
+target
+QABackend*.jar
+Jorge
+meter.log
+siteqrush-log.txt
+.gradle
+build
+gradle.properties
+*.log
+.DS_Store
