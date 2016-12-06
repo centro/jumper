@@ -1,5 +1,6 @@
 package net.centro.rtb.http;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
@@ -78,6 +79,14 @@ public class HttpConnectorTest extends JerseyTest {
         public Response cookie() {
             return Response.ok().cookie(new NewCookie("test", "passed")).build();
         }
+
+        @GET
+        @Path("json")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response json() {
+            return Response.ok("{\"key\":\"value\"}").build();
+        }
+
     }
 
     private static class Calc {
@@ -424,6 +433,19 @@ public class HttpConnectorTest extends JerseyTest {
         assertTrue(httpConnector.getResponseCode() == 200);
         assertTrue(httpConnector.geResponseTime() > SLOW);
         Assert.assertTrue(httpConnector.geResponseTime() != -1);
+    }
+
+    @Test
+    public void getAsJson() throws URISyntaxException {
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("http://localhost:9998/json")
+                .build();
+
+        httpConnector.execute();
+
+        ObjectNode objectNode = httpConnector.getResponseBody(ObjectNode.class);
+        System.out.println("==>" + objectNode.get("key"));
+
     }
 
 }

@@ -1,5 +1,5 @@
 ## Jumper
-Simplified NIO (non-blocking I/O) HTTP client library designed for simplicity and performance in mind.
+Simplified NIO (non-blocking I/O) HTTP client library designed with performance in mind.
 Get your code running in just a couple of minutes. Based on the [Jersey](https://github.com/jersey/jersey) library. Highly efficient and scalable with seamless client caching. <br/>
 <br/>Reasons for choosing Jumper:
 * Easy to read(and write) with a simplified builder client.
@@ -9,6 +9,7 @@ Get your code running in just a couple of minutes. Based on the [Jersey](https:/
 * Easy testing of secured connections (HTTPS) with TrustAllSSL mode.
 * Out of the box performance metrics.
 * Based on the industry-standard Jersey 2
+<br/>
 ##### Why not simply use Jersey?
 While Jersey is a great library, it merely provides building blocks for http connections. Jumper aims to provide idioms
 and ready-to-use library that guarantees a high standard of performance and readability in your Java applications.
@@ -19,7 +20,7 @@ Java application.
 Choose the right library for your team! <br/><br/>
 Your team is new to Jersey or programming http requests? With Jumper you will get :
 <br/>
- 1) 10 minutes learning time. <br/>
+ 1) Get started in just 10 minutes. <br/>
  2) Best practices in terms of performance are enforced seamlessly. <br/>
  3) Readability and simplified usability. <br/>
  4) Simplified non-blocking I/O.
@@ -33,7 +34,6 @@ Java 8+
 
 ##### Dependencies
 * [Jersey 2](https://github.com/jersey/jersey) - REST framework that provides JAX-RS Reference Implementation.
-* [Jackson JSON](https://github.com/FasterXML/jackson) - config file parsing; reporting via the MonitoringCenterServlet.
 * [Google Guava](https://github.com/google/guava) - utilities and cache instrumentation.
 * Apache [Commons validator](http://commons.apache.org/proper/commons-validator/)  - utilities.
 * [SLF4J](http://www.slf4j.org/) - logging.
@@ -122,7 +122,7 @@ httpConnector.execute();
 MyObject myObject = http.getResponseBody(myObject.class);
 }
 ```
-*sync(InvocationCallback)* - will invoke the request async. and executed the InvocationCallback on response.
+*sync(InvocationCallback)* - will invoke the request async. and execute the InvocationCallback on response.
 ```
 InvocationCallback invocationCallback = new InvocationCallback<Response>() {
     @Override
@@ -157,6 +157,18 @@ HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
 httpConnector.execute();
 
 httpConnector.geResponseTime();
+```
+
+Fetch cookie - Retrieve all cookies stored by multiple requests per thread.
+```
+HttpConnector http = HttpConnectorBuilder.newBuilder()
+        .url("http://localhost:9998/cookie")
+        .storeCookies()
+        .build()
+        .execute();
+ 
+Map<String,NewCookie> cookies = HttpConnectorCookieManager.getCookies();
+Cookie cookie = HttpConnectorCookieManager.getCookie("test");
 ```
 #### More info on Jumper
 Review the Javadoc documentation and the github.io page.

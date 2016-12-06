@@ -66,8 +66,8 @@ public class HttpConnectorCookieManager {
     }
 
     public static Cookie getCookie(String name) {
-        //List<Cookie> cookies = cookieStores.get();
-        logger.debug("===> Cookies stored for thread: " + HttpConnector.map2String(cookieStores.get()) + "\n");;
+
+        logger.trace("Cookies stored for thread: " + HttpConnector.map2String(cookieStores.get()) + "\n");;
         Cookie c = cookieStores.get().entrySet().stream().filter(cookie -> cookie.getKey().startsWith(name)).findFirst().orElse(null).getValue();
         if (c != null) { return c; }
         else {
