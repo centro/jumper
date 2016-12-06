@@ -17,7 +17,8 @@ Jumper's ultimate goal is to encapsulate, simplify, and facilitate all http clie
 Java application.
 
 Choose the right library for your team! <br/><br/>
-Your team is new to Jersey? Jumper will make sure :<br/>
+Your team is new to Jersey or programming http requests? With Jumper you will get :
+<br/>
  1) 10 minutes learning time. <br/>
  2) Best practices in terms of performance are enforced seamlessly. <br/>
  3) Readability and simplified usability. <br/>
