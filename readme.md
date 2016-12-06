@@ -9,7 +9,7 @@ Get your code running in just a couple of minutes. Based on the [Jersey](https:/
 * Easy testing of secured connections (HTTPS) with TrustAllSSL mode.
 * Out of the box performance metrics.
 * Based on the industry-standard Jersey 2
-<br/>
+
 ##### Why not simply use Jersey?
 While Jersey is a great library, it merely provides building blocks for http connections. Jumper aims to provide idioms
 and ready-to-use library that guarantees a high standard of performance and readability in your Java applications.
@@ -166,7 +166,7 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
         .storeCookies()
         .build()
         .execute();
- 
+
 Map<String,NewCookie> cookies = HttpConnectorCookieManager.getCookies();
 Cookie cookie = HttpConnectorCookieManager.getCookie("test");
 ```
