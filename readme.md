@@ -111,7 +111,7 @@ http.execute();
 **Asyncronized requests**
 
 *sync()* - will invoke the request async. and return a future
-```
+```java
 HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://github.com/centro")
                 .async()
@@ -123,7 +123,7 @@ MyObject myObject = http.getResponseBody(myObject.class);
 }
 ```
 *sync(InvocationCallback)* - will invoke the request async. and execute the InvocationCallback on response.
-```
+```java
 InvocationCallback invocationCallback = new InvocationCallback<Response>() {
     @Override
     public void completed(Response response) {
@@ -148,7 +148,7 @@ httpConnector.execute();
 ```
 
 Performance metrics
-```
+```java
 HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://github.com/centro")
                 .async()
@@ -160,7 +160,7 @@ httpConnector.geResponseTime();
 ```
 
 Fetch cookie - Retrieve all cookies stored by multiple requests per thread.
-```
+```java
 HttpConnector http = HttpConnectorBuilder.newBuilder()
         .url("http://localhost:9998/cookie")
         .storeCookies()
