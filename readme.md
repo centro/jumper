@@ -1,5 +1,5 @@
 ## Jumper
-Simplified NIO (non-blocking I/O) HTTP client library designed with performance in mind.
+Simplified NIO (non-blocking I/O) HTTP client library with embedded cache, designed with performance in mind.
 Get your code running in just a couple of minutes. Based on the [Jersey](https://github.com/jersey/jersey) library. Highly efficient and scalable with seamless client caching. <br/>
 <br/>Reasons for choosing Jumper:
 * Easy to read(and write) with a simplified builder client.
