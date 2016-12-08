@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.centro.rtb</groupId>
-    <artifactId>jumper-client</artifactId>
+    <artifactId>jumper</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
