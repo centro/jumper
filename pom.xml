@@ -6,12 +6,12 @@
 
     <groupId>net.centro.rtb</groupId>
     <artifactId>jumper</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>Jumper</name>
-    <description>Simplified NIO (non-blocking I/O) HTTP client library designed with performance in mind.</description>
-    <url>https://centro.github.io/Jumper/</url>
+    <description>Simplified NIO (non-blocking I/O) HTTP client library with embedded cache, designed with performance in mind.</description>
+    <url>https://centro.github.io/jumper/</url>
 
     <licenses>
         <license>
