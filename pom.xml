@@ -8,9 +8,10 @@
     <artifactId>jumper-client</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
+
     <name>Jumper</name>
-    <description>Jumper is an http client builder designed for highly scalable application with seamless caching, with simplification in mind.</description>
-    <url>http://centro.net</url>
+    <description>Simplified NIO (non-blocking I/O) HTTP client library designed with performance in mind.</description>
+    <url>https://centro.github.io/Jumper/</url>
 
     <licenses>
         <license>
@@ -29,10 +30,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com:centro/monitoring-center.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:centro/monitoring-center.git</developerConnection>
-        <url>https://github.com/centro/monitoring-center/tree/master</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:git://github.com/centro/jumper.git</connection>
+        <developerConnection>scm:git:ssh://github.com:centro/jumper.git</developerConnection>
+        <url>https://github.com/centro/jumper/tree/master</url>
     </scm>
 
     <properties>
@@ -106,6 +106,14 @@
             <version>${commons-validator.version}</version>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
@@ -114,6 +122,68 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
         </plugins>
