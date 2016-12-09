@@ -1,14 +1,14 @@
 ## Jumper
-Simplified NIO (non-blocking I/O) HTTP client library with embedded cache, designed with performance in mind.
+Simplified NIO (non-blocking I/O) HTTP client library with embedded cache
 Get your code running in just a couple of minutes. Based on the [Jersey](https://github.com/jersey/jersey) library. Highly efficient and scalable with seamless client caching. <br/>
 <br/>Reasons for choosing Jumper:
 * Easy to read(and write) with a simplified builder client.
 * Enforce performance [best practices.](https://blogs.oracle.com/japod/entry/how_to_use_jersey_client)
 * Switch between Apache, Jetty, Netty, Grizzly, HttpUrlConnector implementation with an easy enum selection.
 * Providing seamless caching of clients for enhanced performance and scalability.
-* Easy testing of secured connections (HTTPS) with TrustAllSSL mode.
+* Easy secured connections (HTTPS) to un-certified domains (for QA and testing) with TrustAllSSL mode.
 * Out of the box performance metrics.
-* Based on the industry-standard Jersey 2
+* Based on the industry-standard Jersey
 
 ##### Why not simply use Jersey?
 While Jersey is a great library, it merely provides building blocks for http connections. Jumper aims to provide idioms
@@ -20,7 +20,7 @@ Java application.
 Choose the right library for your team! <br/><br/>
 Your team is new to Jersey or programming http requests? With Jumper you will get :
 <br/>
- 1) Get started in just 10 minutes. <br/>
+ 1) Started in just 10 minutes. <br/>
  2) Best practices in terms of performance are enforced seamlessly. <br/>
  3) Readability and simplified usability. <br/>
  4) Simplified non-blocking I/O.
@@ -44,7 +44,7 @@ Java 8+
 * `HttpConnector` - is the REST http implementation; it should be instantiated by the HttpConnectorBuilder class.
 * `HttpConnectorBuilder` - setting the configuration of the http connection; it follows the builder design pattern.
 methods for collecting metrics and instrumenting various entities.
-* `ClientFactory` - provides the HttpConnector with a Client object, either from an internal cache or by instantiating.
+* `ClientFactory` - provides the HttpConnector with a Client object, either from an internal cache or by instantiation.
 * `Http` - a collection of library enums.
 * `HttpConnectorCookieManager` - seamless cookies management.
 
