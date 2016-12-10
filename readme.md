@@ -147,6 +147,18 @@ httpConnector.execute();
 
 ```
 
+JSON parsing
+```java
+HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://example.com/json")
+                .async()
+                .build();
+
+httpConnector.execute();
+
+ObjectNode objectNode = httpConnector.getResponseBody(ObjectNode.class);
+```
+
 Performance metrics
 ```java
 HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
@@ -170,20 +182,34 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
 Map<String,NewCookie> cookies = HttpConnectorCookieManager.getCookies();
 Cookie cookie = HttpConnectorCookieManager.getCookie("test");
 ```
-GZIP encoded data - printing a response with gzip encoding
+Gzip encoded data - Parsing a response with gzip encoding
 ```java
 HttpConnector http = HttpConnectorBuilder.newBuilder()
         .url("http://localhost:9998/gzip")
         .build()
         .execute();
 
-InputStreamReader reader = new InputStreamReader(httpConnector.getResponseBody(GZIPInputStream.class));
-BufferedReader in = new BufferedReader(reader);
+InputStreamReader reader = new InputStreamReader(new GZIPInputStream(httpConnector.getResponseBody(InputStream.class)));
 
-String readed;
-while ((readed = in.readLine()) != null) {
-    System.out.println(readed);
-}
+```
+Deflate encoded data - Parsing a response with deflate encoding
+```java
+HttpConnector http = HttpConnectorBuilder.newBuilder()
+        .url("http://localhost:9998/deflate")
+        .build()
+        .execute();
+
+InputStreamReader reader = new InputStreamReader(new InflaterInputStream(httpConnector.getResponseBody(InputStream.class)));
+
+```
+Image (jpeg, png, bmp, wbmp, gif) - Parsing a response of an image.
+```java
+HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://httpbin.org/image/jpeg")
+                .build()
+                .execute();
+BufferedImage image = null;
+image = ImageIO.read(httpConnector.getResponseBody(InputStream.class));
 ```
 #### More info on Jumper
 Review the Javadoc documentation and the github.io page.

@@ -6,7 +6,7 @@
 
     <groupId>net.centro.rtb</groupId>
     <artifactId>jumper</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>Jumper</name>
@@ -98,7 +98,7 @@
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>${org.glassfish.jersey.media.version}</version>
-            <scope>test</scope>
+            <!--<scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>

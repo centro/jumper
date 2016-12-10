@@ -1,6 +1,7 @@
 package net.centro.rtb.http;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.io.CharStreams;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
@@ -9,22 +10,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.rules.TemporaryFolder;
-
 import javax.activation.MimetypesFileTypeMap;
+import javax.imageio.ImageIO;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.*;
-
-import java.io.BufferedReader;
-import java.io.File;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 import static org.junit.Assert.*;
 /**
@@ -203,7 +202,7 @@ public class HttpConnectorTest extends JerseyTest {
 
         Assert.assertTrue(test.exists());
 
-        Thread.sleep(5000);
+        Thread.sleep(10000);
     }
 
     @Test
@@ -252,8 +251,8 @@ public class HttpConnectorTest extends JerseyTest {
             public void completed(Response response) {
                 try {
                     System.out.println("Downloading to temp file:");
-                    System.out.println(testFolder.getRoot().getAbsolutePath()+"/download/download.zip");
-                    HttpConnector.saveToFile(response, Paths.get(testFolder.getRoot().getAbsolutePath()+"/download/download.zip"));
+                    System.out.println(testFolder.getRoot().getAbsolutePath()+File.separator +"download" + File.separator + "download.zip");
+                    HttpConnector.saveToFile(response, Paths.get(testFolder.getRoot().getAbsolutePath() + File.separator + "download" + File.separator + "download.zip"));
                 } catch (Error e) {
                     e.printStackTrace();
                 }
@@ -282,7 +281,7 @@ public class HttpConnectorTest extends JerseyTest {
         tempFile.deleteOnExit();
         File tempFolder = testFolder.newFolder("download");
         tempFolder.deleteOnExit();
-        String downloadFile = tempFolder.getAbsolutePath()+"/download.zip";
+        String downloadFile = tempFolder.getAbsolutePath()+ File.separator + "download.zip";
 
         byte[] data = {123};
         java.nio.file.Path file = Paths.get(tempFile.toURI());
@@ -293,7 +292,7 @@ public class HttpConnectorTest extends JerseyTest {
 
         try {
             http = new HttpConnectorBuilder()
-                    .url("http://localhost:9998/file?path=" + tempFile.getAbsolutePath())
+                    .url(("http://localhost:9998/file?path=" + tempFile.getAbsolutePath()).replace("\\","%2F"))
                     .setMethod(Http.HttpMethod.GET)
                     .saveToFile(path)
                     .async(invocationCallback)
@@ -327,9 +326,10 @@ public class HttpConnectorTest extends JerseyTest {
         HttpConnector http = null;
         java.nio.file.Path path = Paths.get(downloadFile);
 
+
         try {
             http = new HttpConnectorBuilder()
-                    .url("http://localhost:9998/file?path=" + tempFile.getAbsolutePath())
+                    .url(("http://localhost:9998/file?path=" + tempFile.getAbsolutePath()).replace("\\","%2F"))
                     .setMethod(Http.HttpMethod.GET)
                     .saveToFile(path)
                     .build();
@@ -360,8 +360,6 @@ public class HttpConnectorTest extends JerseyTest {
                 .build();
         b.execute();
         Assert.assertTrue(b.getResponseCode() == 200);
-        //System.out.println(b.getResponseBody(String.class));
-
     }
 
     @Test
@@ -463,13 +461,72 @@ public class HttpConnectorTest extends JerseyTest {
                 .build()
                 .execute();
 
-        InputStreamReader reader = new InputStreamReader(httpConnector.getResponseBody(GZIPInputStream.class));
-        BufferedReader in = new BufferedReader(reader);
 
-        String readed;
-        while ((readed = in.readLine()) != null) {
-            System.out.println(readed);
+        System.out.println(httpConnector.getRawResponse().getMediaType());
+        System.out.println(httpConnector.getRawResponse().getHeaders());
+        System.out.println(CharStreams.toString(new InputStreamReader(new GZIPInputStream(httpConnector.getResponseBody(InputStream.class)), StandardCharsets.UTF_8)));
+
+    }
+
+    @Ignore
+    @Test
+    public void testDeflate() throws URISyntaxException, IOException {
+
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://httpbin.org/deflate")
+                .setMethod(Http.HttpMethod.GET)
+                .build()
+                .execute();
+
+
+        System.out.println(httpConnector.getRawResponse().getMediaType());
+        System.out.println(httpConnector.getRawResponse().getHeaders());
+        System.out.println(CharStreams.toString(new InputStreamReader(new InflaterInputStream(httpConnector.getResponseBody(InputStream.class)), StandardCharsets.UTF_8)));
+
+    }
+
+    @Ignore
+    @Test
+    public void testJson() throws URISyntaxException {
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://httpbin.org/get")
+                .build()
+                .execute();
+        System.out.println(httpConnector.getResponseBody(ObjectNode.class).get("headers").get("User-Agent"));
+        ObjectNode objectNode = httpConnector.getResponseBody(ObjectNode.class);
+        assertTrue(objectNode.has("headers"));
+    }
+
+    @Ignore
+    @Test
+    public void testXML() throws URISyntaxException {
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://httpbin.org/xml")
+                .build()
+                .execute();
+
+        System.out.println(httpConnector.getResponseBody(String.class));
+    }
+
+    @Ignore
+    @Test
+    public void testJPG() throws URISyntaxException {
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://httpbin.org/image/jpeg")
+                .build()
+                .execute();
+
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(httpConnector.getResponseBody(InputStream.class));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        System.out.println(image);
     }
 
     @Ignore
@@ -489,6 +546,19 @@ public class HttpConnectorTest extends JerseyTest {
 
         Assert.assertTrue(httpConnector.getResponseBody().length() > 100);
 
+    }
+
+    @Test
+    public void simpleGetHeaders() throws URISyntaxException {
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("http://localhost:9998/fast")
+                .build()
+                .execute();
+        Response response = httpConnector.getRawResponse();
+        response.getHeaders();
+        HttpConnector.getResponseBody(response, String.class);
+        response.getStatusInfo();
     }
 
 }

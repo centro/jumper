@@ -7,6 +7,8 @@ import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response;
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -264,18 +266,6 @@ public class HttpConnector {
             return (T)responseBody;
         }
 
-        if (tClass == GZIPInputStream.class) {
-
-            try {
-                GZIPInputStream g = new GZIPInputStream(getResponseBody(InputStream.class));
-                return (T) g;
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-                e.printStackTrace();
-                return null;
-            }
-        }
-
         try {
             if ((response != null && !response.hasEntity()) || (future != null && !future.get().hasEntity())) {
                 String response = "Empty response: " + getResponseCode() + " " +  getResponseMessage();
@@ -429,6 +419,23 @@ public class HttpConnector {
      */
     public javax.ws.rs.core.Response getRawResponse() {
         return response;
+    }
+
+    /**
+     * Get a Map collection of the response headers.
+     * @return MultivaluedMap<String, Object>
+     */
+    public MultivaluedMap<String, Object> getResponseHeaders() {
+       return response.getHeaders();
+    }
+
+    /**
+     * Get the value of a specific header.
+     * @param key a key in the headers map.
+     * @return String
+     */
+    public String getResponseHeader(String key) {
+        return response.getHeaderString(key);
     }
 
     /**
