@@ -190,7 +190,7 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
         .build()
         .execute();
 
-InputStreamReader reader = new InputStreamReader(new GZIPInputStream(httpConnector.getResponseBody(InputStream.class)));
+InputStreamReader reader = new InputStreamReader(new GZIPInputStream(http.getResponseBody(InputStream.class)));
 
 ```
 Deflate encoded data - Parsing a response with deflate encoding
@@ -200,17 +200,17 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
         .build()
         .execute();
 
-InputStreamReader reader = new InputStreamReader(new InflaterInputStream(httpConnector.getResponseBody(InputStream.class)));
+InputStreamReader reader = new InputStreamReader(new InflaterInputStream(http.getResponseBody(InputStream.class)));
 
 ```
 Image (jpeg, png, bmp, wbmp, gif) - Parsing a response of an image.
 ```java
-HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+HttpConnector http = HttpConnectorBuilder.newBuilder()
                 .url("https://httpbin.org/image/jpeg")
                 .build()
                 .execute();
 BufferedImage image = null;
-image = ImageIO.read(httpConnector.getResponseBody(InputStream.class));
+image = ImageIO.read(http.getResponseBody(InputStream.class));
 ```
 #### More info on Jumper
 Review the Javadoc documentation and the github.io page.
