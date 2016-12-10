@@ -1,5 +1,5 @@
 ## Jumper
-Simplified NIO (non-blocking I/O) HTTP client library with embedded cache
+Simplified NIO (non-blocking I/O) HTTP client library with embedded cache.
 Get your code running in just a couple of minutes. Based on the [Jersey](https://github.com/jersey/jersey) library. Highly efficient and scalable with seamless client caching. <br/>
 <br/>Reasons for choosing Jumper:
 * Easy to read(and write) with a simplified builder client.
@@ -8,7 +8,7 @@ Get your code running in just a couple of minutes. Based on the [Jersey](https:/
 * Providing seamless caching of clients for enhanced performance and scalability.
 * Easy secured connections (HTTPS) to un-certified domains (for QA and testing) with TrustAllSSL mode.
 * Out of the box performance metrics.
-* Based on the industry-standard Jersey
+* Based on the industry-standard Jersey.
 
 ##### Why not simply use Jersey?
 While Jersey is a great library, it merely provides building blocks for http connections. Jumper aims to provide idioms
