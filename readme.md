@@ -110,7 +110,7 @@ http.execute();
 
 **Asyncronized requests**
 
-*sync()* - will invoke the request async. and return a future
+*async()* - will invoke the request async. and return a future
 ```java
 HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://github.com/centro")
@@ -122,7 +122,7 @@ httpConnector.execute();
 MyObject myObject = http.getResponseBody(myObject.class);
 }
 ```
-*sync(InvocationCallback)* - will invoke the request async. and execute the InvocationCallback on response.
+*async(InvocationCallback)* - will invoke the request async. and execute the InvocationCallback on response.
 ```java
 InvocationCallback invocationCallback = new InvocationCallback<Response>() {
     @Override
@@ -169,6 +169,22 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
 
 Map<String,NewCookie> cookies = HttpConnectorCookieManager.getCookies();
 Cookie cookie = HttpConnectorCookieManager.getCookie("test");
+```
+GZIP encoded data - printing a response with gzip encoding
+```java
+HttpConnector http = HttpConnectorBuilder.newBuilder()
+        .url("http://localhost:9998/cookie")
+        .storeCookies()
+        .build()
+        .execute();
+
+InputStreamReader reader = new InputStreamReader(httpConnector.getResponseBody(GZIPInputStream.class));
+        BufferedReader in = new BufferedReader(reader);
+
+        String readed;
+        while ((readed = in.readLine()) != null) {
+            System.out.println(readed);
+        }
 ```
 #### More info on Jumper
 Review the Javadoc documentation and the github.io page.

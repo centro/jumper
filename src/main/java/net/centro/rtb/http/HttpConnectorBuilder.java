@@ -193,13 +193,24 @@ public class HttpConnectorBuilder {
     }
 
     /**
-     * (optional) Set the timeout for the client in milliseconds . Default is set to infinity.
+     * (optional) Set the timeout to establish a connection to the server in milliseconds . Default is set to infinity.
      * @param timeout value int
      * @return Builder
      */
-    public HttpConnectorBuilder setTimeout(int timeout) {
+    public HttpConnectorBuilder setConnectTimeout(int timeout) {
 
         clientProperties.put(ClientProperties.CONNECT_TIMEOUT, timeout);
+        return this;
+    }
+
+    /**
+     * (optional) Set the timeout to read the response from the server in milliseconds . Default is set to infinity.
+     * @param timeout value int
+     * @return Builder
+     */
+    public HttpConnectorBuilder setReadTimeout(int timeout) {
+
+        clientProperties.put(ClientProperties.READ_TIMEOUT, timeout);
         return this;
     }
 

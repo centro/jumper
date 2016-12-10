@@ -13,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Main http client class.
@@ -239,6 +240,14 @@ public class HttpConnector {
     }
 
     /**
+     * Returns the raw Client object. This is for experimental use only.
+     * @return raw Client object.
+     */
+    public Client getRawClient() {
+        return client;
+    }
+
+    /**
      * Returns the http response body.
      * @param tClass the type of object the response should be mapped to. (Ex. getResponseBody(String.class))
      * @param <T> Generic type
@@ -248,10 +257,23 @@ public class HttpConnector {
 
         if (responseBody != null) {
             if (tClass.isAssignableFrom(InputStream.class)) {
-                return (T) new ByteArrayInputStream(((String)responseBody).getBytes());
+                if (tClass.isInstance(String.class)) {
+                    return (T) new ByteArrayInputStream(((String) responseBody).getBytes());
+                }
             }
-
             return (T)responseBody;
+        }
+
+        if (tClass == GZIPInputStream.class) {
+
+            try {
+                GZIPInputStream g = new GZIPInputStream(getResponseBody(InputStream.class));
+                return (T) g;
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+                return null;
+            }
         }
 
         try {

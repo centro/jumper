@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -15,12 +16,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.*;
 
+import java.io.BufferedReader;
 import java.io.File;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.zip.GZIPInputStream;
 
 import static org.junit.Assert.*;
 /**
@@ -445,6 +449,45 @@ public class HttpConnectorTest extends JerseyTest {
 
         ObjectNode objectNode = httpConnector.getResponseBody(ObjectNode.class);
         System.out.println("==>" + objectNode.get("key"));
+
+    }
+
+    @Ignore
+    @Test
+    public void testGzip() throws URISyntaxException, IOException {
+
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://httpbin.org/gzip")
+                .setMethod(Http.HttpMethod.GET)
+                .build()
+                .execute();
+
+        InputStreamReader reader = new InputStreamReader(httpConnector.getResponseBody(GZIPInputStream.class));
+        BufferedReader in = new BufferedReader(reader);
+
+        String readed;
+        while ((readed = in.readLine()) != null) {
+            System.out.println(readed);
+        }
+    }
+
+    @Ignore
+    @Test
+    public void testRedirect() throws URISyntaxException, IOException {
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://httpbin.org/redirect-to?url=http%3A%2F%2Fexample.com%2F")
+                .setMethod(Http.HttpMethod.GET)
+                .follow_redirect(true)
+                .setConnectorProvider(Http.ConnectorProvider.Apache)
+                .setConnectTimeout(10000)
+                .build()
+                .execute();
+
+        System.out.println(httpConnector.getResponseBody());
+
+        Assert.assertTrue(httpConnector.getResponseBody().length() > 100);
 
     }
 
