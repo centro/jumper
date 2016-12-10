@@ -173,18 +173,17 @@ Cookie cookie = HttpConnectorCookieManager.getCookie("test");
 GZIP encoded data - printing a response with gzip encoding
 ```java
 HttpConnector http = HttpConnectorBuilder.newBuilder()
-        .url("http://localhost:9998/cookie")
-        .storeCookies()
+        .url("http://localhost:9998/gzip")
         .build()
         .execute();
 
 InputStreamReader reader = new InputStreamReader(httpConnector.getResponseBody(GZIPInputStream.class));
-        BufferedReader in = new BufferedReader(reader);
+BufferedReader in = new BufferedReader(reader);
 
-        String readed;
-        while ((readed = in.readLine()) != null) {
-            System.out.println(readed);
-        }
+String readed;
+while ((readed = in.readLine()) != null) {
+    System.out.println(readed);
+}
 ```
 #### More info on Jumper
 Review the Javadoc documentation and the github.io page.
