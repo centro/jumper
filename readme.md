@@ -130,12 +130,11 @@ InvocationCallback invocationCallback = new InvocationCallback<Response>() {
     public void completed(Response response) {
         System.out.println(response.getStatus());
         System.out.println(HttpConnector.getResponseBody(response,String.class));
-
     }
+    
     @Override
     public void failed(Throwable throwable) {
         System.out.println("oops");
-
     }
 };
 
@@ -190,7 +189,8 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
         .build()
         .execute();
 
-InputStreamReader reader = new InputStreamReader(new GZIPInputStream(http.getResponseBody(InputStream.class)));
+InputStreamReader reader;
+reader = new InputStreamReader(new GZIPInputStream(http.getResponseBody(InputStream.class)));
 
 ```
 Deflate encoded data - Parsing a response with deflate encoding
@@ -200,7 +200,8 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
         .build()
         .execute();
 
-InputStreamReader reader = new InputStreamReader(new InflaterInputStream(http.getResponseBody(InputStream.class)));
+InputStreamReader reader;
+reader = new InputStreamReader(new InflaterInputStream(http.getResponseBody(InputStream.class)));
 
 ```
 Image (jpeg, png, bmp, wbmp, gif) - Parsing a response of an image.
@@ -209,6 +210,7 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
                 .url("https://httpbin.org/image/jpeg")
                 .build()
                 .execute();
+
 BufferedImage image = null;
 image = ImageIO.read(http.getResponseBody(InputStream.class));
 ```
