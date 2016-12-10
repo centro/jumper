@@ -35,6 +35,7 @@ Java 8+
 ##### Dependencies
 * [Jersey 2](https://github.com/jersey/jersey) - REST framework that provides JAX-RS Reference Implementation.
 * [Google Guava](https://github.com/google/guava) - utilities and cache instrumentation.
+* [Jackson JSON](https://github.com/FasterXML/jackson) - JSON parsing.
 * Apache [Commons validator](http://commons.apache.org/proper/commons-validator/)  - utilities.
 * [SLF4J](http://www.slf4j.org/) - logging.
 
