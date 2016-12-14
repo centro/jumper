@@ -1,7 +1,11 @@
 package net.centro.rtb.http;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
+import org.glassfish.grizzly.compression.zip.GZipEncoder;
+import org.glassfish.jersey.client.filter.EncodingFeature;
+import org.glassfish.jersey.message.internal.EntityInputStream;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
@@ -15,14 +19,22 @@ import javax.imageio.ImageIO;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
 import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.*;
+import javax.ws.rs.ext.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import static org.junit.Assert.*;
@@ -36,6 +48,7 @@ public class HttpConnectorTest extends JerseyTest {
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
+    @Provider
     @Path("/")
     public static class testResource {
         @GET
@@ -90,6 +103,36 @@ public class HttpConnectorTest extends JerseyTest {
             return Response.ok("{\"key\":\"value\"}").build();
         }
 
+        @POST
+        @Path("gzip")
+        @Consumes("application/json")
+        public Response gzip(Calc calc) {
+            System.out.println("==> " + calc.getA());
+            return Response.status(201).entity(calc.getA()+calc.getB()).build();
+        }
+
+    }
+
+    @Provider
+    public static class GZipInterceptor implements ReaderInterceptor {
+        @Override
+        public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException {
+            System.out.println(context.getHeaders());
+            List<String> header = context.getHeaders().get("Content-Encoding");
+            // decompress gzip stream only
+            if (header != null && header.contains("gzip"))
+                context.setInputStream(new GZIPInputStream(context.getInputStream()));
+            return context.proceed();
+        }
+
+//        @Override
+//        public void aroundWriteTo(WriterInterceptorContext context) throws IOException, WebApplicationException {
+//            System.out.println(context.getHeaders());
+//            context.setOutputStream(new GZIPOutputStream(context.getOutputStream()));
+//            context.getHeaders().add("Content-Encoding", "gzip");
+//            System.out.println(context.getHeaders());
+//            context.proceed();
+//        }
     }
 
     private static class Calc {
@@ -123,6 +166,7 @@ public class HttpConnectorTest extends JerseyTest {
         return new ResourceConfig(testResource.class)
                 .packages("org.glassfish.jersey.examples.jackson")
                 .register(JacksonFeature.class)
+                .register(GZipInterceptor.class)
     ;}
 
     @Test
@@ -173,7 +217,11 @@ public class HttpConnectorTest extends JerseyTest {
             @Override
             public void completed(Response response) {
 
-                HttpConnector.saveToFile(response, Paths.get("/Users/ofir.gal/test.txt"));
+                try {
+                    HttpConnector.saveToFile(response, Paths.get("/Users/ofir.gal/test.txt"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 File test = new File ("/Users/ofir.gal/test.txt");
                 Assert.assertTrue(test.exists());
             }
@@ -253,7 +301,7 @@ public class HttpConnectorTest extends JerseyTest {
                     System.out.println("Downloading to temp file:");
                     System.out.println(testFolder.getRoot().getAbsolutePath()+File.separator +"download" + File.separator + "download.zip");
                     HttpConnector.saveToFile(response, Paths.get(testFolder.getRoot().getAbsolutePath() + File.separator + "download" + File.separator + "download.zip"));
-                } catch (Error e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 File test = new File (testFolder.getRoot().getAbsolutePath()+"/download/download.zip");
@@ -452,8 +500,7 @@ public class HttpConnectorTest extends JerseyTest {
 
     @Ignore
     @Test
-    public void testGzip() throws URISyntaxException, IOException {
-
+    public void testGzipDecompress() throws URISyntaxException, IOException {
 
         HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://httpbin.org/gzip")
@@ -461,12 +508,35 @@ public class HttpConnectorTest extends JerseyTest {
                 .build()
                 .execute();
 
+        System.out.println(httpConnector.getResponseBody());
 
-        System.out.println(httpConnector.getRawResponse().getMediaType());
-        System.out.println(httpConnector.getRawResponse().getHeaders());
-        System.out.println(CharStreams.toString(new InputStreamReader(new GZIPInputStream(httpConnector.getResponseBody(InputStream.class)), StandardCharsets.UTF_8)));
+        System.out.println(httpConnector.getRawResponse().getHeaderString("Content-Encoding"));
+        System.out.println(httpConnector.getResponseBody(InputStream.class));
+        System.out.println(CharStreams.toString(new InputStreamReader(httpConnector.getResponseBody(InputStream.class))));
+    }
+
+    @Test
+    public void testGzipRequest() throws URISyntaxException, IOException {
+
+        String body = ("{\"a\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\"}");
+
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("http://localhost:9998/gzip")
+                .setMethod(Http.HttpMethod.POST)
+                .addHeaderProperty("Content-Type", "application/json")
+                .setBody(body)
+                .compress(Http.Encoding.GZIP)
+                .build();
+
+        httpConnector.execute();
+
+        System.out.println(httpConnector.getResponseBody());
+        System.out.println(httpConnector.getResponseCode());
+        System.out.println(httpConnector.getResponseMessage());
 
     }
+
 
     @Ignore
     @Test
@@ -476,13 +546,14 @@ public class HttpConnectorTest extends JerseyTest {
         HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://httpbin.org/deflate")
                 .setMethod(Http.HttpMethod.GET)
+                .compress(Http.Encoding.DEFLATE)
                 .build()
                 .execute();
 
-
         System.out.println(httpConnector.getRawResponse().getMediaType());
         System.out.println(httpConnector.getRawResponse().getHeaders());
-        System.out.println(CharStreams.toString(new InputStreamReader(new InflaterInputStream(httpConnector.getResponseBody(InputStream.class)), StandardCharsets.UTF_8)));
+        System.out.println(httpConnector.getRawResponse().getHeaderString("Content-Encoding"));
+        System.out.println(CharStreams.toString(new InputStreamReader(httpConnector.getResponseBody(InputStream.class))));
 
     }
 

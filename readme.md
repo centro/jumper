@@ -2,7 +2,7 @@
 Simplified NIO (non-blocking I/O) HTTP client library with embedded cache.
 Get your code running in just a couple of minutes. Based on the [Jersey](https://github.com/jersey/jersey) library. Highly efficient and scalable with seamless client caching. <br/>
 <br/>Reasons for choosing Jumper:
-* Easy to read(and write) with a simplified builder client.
+* Easy to read (and write) with a simplified builder client.
 * Enforce performance [best practices.](https://blogs.oracle.com/japod/entry/how_to_use_jersey_client)
 * Switch between Apache, Jetty, Netty, Grizzly, HttpUrlConnector implementation with an easy enum selection.
 * Providing seamless caching of clients for enhanced performance and scalability.
@@ -24,6 +24,7 @@ Your team is new to Jersey or programming http requests? With Jumper you will ge
  2) Best practices in terms of performance are enforced seamlessly. <br/>
  3) Readability and simplified usability. <br/>
  4) Simplified non-blocking I/O.
+ 5) Simplfied compression & seamless de-compression of gzip and deflate encoding.
 
 
 
@@ -81,6 +82,10 @@ HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .build();
 
 httpConnector.execute();
+
+System.out.println(httpConnector.getResponseBody());
+
+//getResponseBody() parse response body to a String
 ```
 
 Post request
@@ -107,6 +112,8 @@ http = new HttpConnectorBuilder()
             .build();
 
 http.execute();
+
+http.saveToFile();
 ```
 
 **Asyncronized requests**
@@ -182,26 +189,27 @@ HttpConnector http = HttpConnectorBuilder.newBuilder()
 Map<String,NewCookie> cookies = HttpConnectorCookieManager.getCookies();
 Cookie cookie = HttpConnectorCookieManager.getCookie("test");
 ```
-Gzip encoded data - Parsing a response with gzip encoding
+Gzip or Deflate encoded data - Parsing a response with gzip or Deflate encoding.
 ```java
 HttpConnector http = HttpConnectorBuilder.newBuilder()
         .url("http://localhost:9998/gzip")
         .build()
         .execute();
 
-InputStreamReader reader;
-reader = new InputStreamReader(new GZIPInputStream(http.getResponseBody(InputStream.class)));
+// automatically detects gzip, deflate compressed input stream
+// and decompress it.
+
+System.out.println(http.getResponseBody());
 
 ```
-Deflate encoded data - Parsing a response with deflate encoding
+Gzip or Deflate request body compression - Compressing the request body.
 ```java
 HttpConnector http = HttpConnectorBuilder.newBuilder()
-        .url("http://localhost:9998/deflate")
+        .url("http://localhost:9998/gzip")
+        .setBody(object)
+        .compress(Http.Encoding.GZIP)
         .build()
         .execute();
-
-InputStreamReader reader;
-reader = new InputStreamReader(new InflaterInputStream(http.getResponseBody(InputStream.class)));
 
 ```
 Image (jpeg, png, bmp, wbmp, gif) - Parsing a response of an image.

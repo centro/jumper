@@ -2,6 +2,7 @@ package net.centro.rtb.http;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.client.spi.ConnectorProvider;
@@ -53,6 +54,7 @@ public class HttpConnectorBuilder {
     private static SSLContext sslContext = getTrustAllSslContext();
     private boolean trustAllSSLContext = false;
     private Map<String, Object> clientProperties = new HashMap<>();
+    private Http.Encoding encoding = Http.Encoding.NONE;
     private static Map<String, Object> clientPropertiesDefault;
 
     static {
@@ -334,6 +336,16 @@ public class HttpConnectorBuilder {
         return this;
     }
 
+    /**
+     * Set the compression method for the HTTP request.
+     * @param encoding encoding enum.
+     */
+    public HttpConnectorBuilder compress(Http.Encoding encoding) {
+
+        this.encoding = encoding;
+        return this;
+    }
+
     private Http.HttpProtocol getProtocol(String urlString) throws URISyntaxException {
 
         String protocol = urlString.toLowerCase().substring(0, urlString.indexOf("://") + 3);
@@ -406,6 +418,10 @@ public class HttpConnectorBuilder {
 
     public InvocationCallback getInvocationCallback() {
         return invocationCallback;
+    }
+
+    public Http.Encoding getCompressionEncoding() {
+        return encoding;
     }
 
     public int getAsyncThreadPoolSize () {

@@ -4,18 +4,34 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.glassfish.grizzly.compression.zip.GZipDecoder;
+import org.glassfish.grizzly.compression.zip.GZipEncoder;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.filter.EncodingFeature;
+import org.glassfish.jersey.client.filter.EncodingFilter;
 import org.glassfish.jersey.grizzly.connector.GrizzlyConnectorProvider;
 import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.message.filtering.EntityFilteringFeature;
 import org.glassfish.jersey.message.internal.MessagingBinders;
 import org.glassfish.jersey.netty.connector.NettyConnectorProvider;
+
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
+import javax.ws.rs.ext.WriterInterceptor;
+import javax.ws.rs.ext.WriterInterceptorContext;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * The ClientFactory class is used by the HttpConnector to get a Client class.
@@ -46,6 +62,18 @@ public class ClientFactory {
     private static Client createNewClient(HttpConnectorBuilder builder) {
 
         ClientConfig config = new ClientConfig();
+
+        switch (builder.getCompressionEncoding()) {
+            case GZIP:
+                config.register(GZIPWriterInterceptor.class);
+                break;
+            case DEFLATE:
+                config.register(DeflateWriterInterceptor.class);
+                break;
+            default:
+                break;
+        }
+
         builder.getClientProperties().entrySet().stream().forEach(entry -> config.property(entry.getKey(), entry.getValue()));
 
         switch (builder.getConnectorProvider()) {
@@ -104,12 +132,14 @@ public class ClientFactory {
         private Http.HttpProtocol httpProtocol;
         private Map<String, Object> properties;
         private boolean trustAllSSL;
+        private Http.Encoding encoding;
 
         private HttpConnectorBuilder builder;
 
         ClientIdentifier(HttpConnectorBuilder builder) {
 
             //this.redirect = builder.isRedirect();
+            this.encoding = builder.getCompressionEncoding();
             this.connectorProvider = builder.getConnectorProvider();
             this.httpProtocol = builder.getConnType();
             //this.threadPool = builder.getAsyncThreadPoolSize();
@@ -129,6 +159,7 @@ public class ClientFactory {
             if (connectorProvider != that.connectorProvider) return false;
             if (!properties.equals(that.properties)) return false;
             if (trustAllSSL != that.trustAllSSL) return false;
+            if (!encoding.equals(that.encoding)) return false;
             return httpProtocol == that.httpProtocol;
 
         }
@@ -138,8 +169,43 @@ public class ClientFactory {
             int result = connectorProvider != null ? connectorProvider.hashCode() : 0;
             result = 31 * result + (httpProtocol != null ? httpProtocol.hashCode() : 0);
             result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            result = 31 * result + (encoding != null ? properties.hashCode() : 0);
             return result;
         }
+    }
+
+    @Provider
+    public static class GZIPWriterInterceptor implements WriterInterceptor {
+
+        @Override
+        public void aroundWriteTo(WriterInterceptorContext context)
+                throws IOException, WebApplicationException {
+
+            MultivaluedMap<String,Object> headers = context.getHeaders();
+            headers.add("Content-Encoding", "gzip");
+
+            final OutputStream outputStream = context.getOutputStream();
+            context.setOutputStream(new GZIPOutputStream(outputStream));
+            context.proceed();
+        }
+
+    }
+
+    @Provider
+    public static class DeflateWriterInterceptor implements WriterInterceptor {
+
+        @Override
+        public void aroundWriteTo(WriterInterceptorContext context)
+                throws IOException, WebApplicationException {
+
+            MultivaluedMap<String,Object> headers = context.getHeaders();
+            headers.add("Content-Encoding", "deflate");
+
+            final OutputStream outputStream = context.getOutputStream();
+            context.setOutputStream(new DeflaterOutputStream(outputStream));
+            context.proceed();
+        }
+
     }
 }
 

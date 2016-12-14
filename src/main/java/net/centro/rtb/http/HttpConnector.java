@@ -1,11 +1,16 @@
 package net.centro.rtb.http;
 
+import com.google.common.io.CharStreams;
+import org.glassfish.jersey.message.internal.EntityInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.WriterInterceptor;
+import javax.ws.rs.ext.WriterInterceptorContext;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
@@ -16,6 +21,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.InflaterInputStream;
 
 /**
  * Main http client class.
@@ -26,6 +33,7 @@ import java.util.zip.GZIPInputStream;
  * @version 1.0
  */
 public class HttpConnector {
+
 
     private static final Logger logger = LoggerFactory.getLogger(HttpConnector.class);
     private static long userAgentCounter = System.currentTimeMillis();
@@ -48,6 +56,7 @@ public class HttpConnector {
     private long duration;
     private long start,end;
     private Invocation.Builder invoke;
+    private Http.Encoding encoding = null;
 
     static {
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
@@ -191,7 +200,8 @@ public class HttpConnector {
                     break;
                 case ASYNC:
                     try {
-                        cookies = future.get().getCookies();
+                        response = future.get();
+                        cookies = response.getCookies();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     } catch (ExecutionException e) {
@@ -206,6 +216,27 @@ public class HttpConnector {
     }
 
     /**
+     * Retreive the Content-Encoding header as an enum.
+     * @return an enum representation of the Content-Encoding header.
+     */
+    public Http.Encoding getEncoding() {
+
+        if (encoding == null) {
+            encoding = getEncoding(response);
+        }
+        return encoding;
+
+    }
+
+    private static Http.Encoding getEncoding(Response response) {
+
+        Http.Encoding encoding;
+        String encodingValue = (response.getHeaderString("content-encoding") != null) ? response.getHeaderString("content-encoding") : "";
+        encoding = Http.Encoding.fromString(encodingValue);
+        return encoding;
+    }
+
+    /**
      * @return HTTP request response code (200,302,400,500,..)
      */
     public int getResponseCode() {
@@ -216,7 +247,8 @@ public class HttpConnector {
 
         if (syncType == Http.SyncType.ASYNC) {
             try {
-                responseCode = future.get().getStatus();
+                response = future.get();
+                responseCode = response.getStatus();
                 return responseCode;
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage());
@@ -229,16 +261,24 @@ public class HttpConnector {
     }
 
     /**
-     *
+     * Parse the response into a String.
      * @return HTTP request response body as String.
      */
     public String getResponseBody() {
 
-        if (responseBody != null) {
-            return ((String) responseBody);
+        InputStreamReader inputStreamReader;
+
+        if (responseBody == null) {
+            inputStreamReader = new InputStreamReader(getResponseBody(InputStream.class));
+            try {
+                responseBody = CharStreams.toString(inputStreamReader);
+            } catch (IOException e1) {
+                logger.error("Failed to parse InputStreamReader to String");
+                e1.printStackTrace();
+                return null;
+            }
         }
-        responseBody = getResponseBody(String.class);
-        return ((String)responseBody);
+        return (String)responseBody;
     }
 
     /**
@@ -258,12 +298,10 @@ public class HttpConnector {
     public <T> T getResponseBody(Class<T> tClass) {
 
         if (responseBody != null) {
-            if (tClass.isAssignableFrom(InputStream.class)) {
-                if (tClass.isInstance(String.class)) {
-                    return (T) new ByteArrayInputStream(((String) responseBody).getBytes());
-                }
+            if ((tClass.isAssignableFrom(InputStream.class)) && (responseBody instanceof String)) {
+                return (T) new ByteArrayInputStream(((String) responseBody).getBytes());
             }
-            return (T)responseBody;
+            return (T) responseBody;
         }
 
         try {
@@ -280,8 +318,9 @@ public class HttpConnector {
 
         if (syncType == Http.SyncType.ASYNC) {
             try {
-                responseBody = future.get().readEntity(tClass);
-                return ((T) responseBody);
+                response = future.get();
+                responseBody = response.readEntity(tClass);
+
             } catch (InterruptedException | ExecutionException e) {
                 logger.error(e.getMessage());
                 e.printStackTrace();
@@ -289,8 +328,32 @@ public class HttpConnector {
             }
         } else {
             responseBody = response.readEntity(tClass);
-            return ((T) responseBody);
+            //return ((T) responseBody);
         }
+
+        if (tClass.isAssignableFrom(InputStream.class)) {
+            responseBody = getInputStreamDecoded(((InputStream) responseBody), getEncoding());
+        }
+
+        return (T) responseBody;
+    }
+
+    private static InputStream getInputStreamDecoded(InputStream inputStream, Http.Encoding encode) {
+
+        try {
+            switch (encode) {
+                case NONE:
+                    return inputStream;
+                case GZIP:
+                    return new EntityInputStream(new GZIPInputStream(inputStream));
+                case DEFLATE:
+                    return new EntityInputStream(new InflaterInputStream(inputStream));
+            }
+        } catch (IOException e) {
+            logger.error("Failed to decode stream with {} encoding", encode.name());
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -315,7 +378,12 @@ public class HttpConnector {
             return (tClass.getSimpleName().equals("String")) ? (T) response : null;
         }
 
-        return response.readEntity(tClass);
+        T body = response.readEntity(tClass);
+
+        if (tClass.isAssignableFrom(InputStream.class)) {
+            body = (T) getInputStreamDecoded((InputStream) body, getEncoding(response));
+        }
+        return body;
     }
 
     /**
@@ -331,7 +399,7 @@ public class HttpConnector {
     /**
      * Save the file to the path set in the builder class.
      */
-    public void saveToFile() {
+    public void saveToFile() throws IOException {
 
         saveToFile(path);
     }
@@ -340,7 +408,7 @@ public class HttpConnector {
      * Saves the http response stream to a local file.
      * @param path a java.nio.file.Path
      */
-    public void saveToFile(java.nio.file.Path path) {
+    public void saveToFile(java.nio.file.Path path) throws IOException {
 
         saveToFile(getResponseBody(InputStream.class), path);
 
@@ -351,30 +419,23 @@ public class HttpConnector {
      * Saves the http response stream to a local file. Designed to be used by invocationCallback implementation.
      * @param path a java.nio.file.Path
      */
-    public static void saveToFile(Response response, java.nio.file.Path path) {
+    public static void saveToFile(Response response, java.nio.file.Path path) throws IOException {
 
         saveToFile(getResponseBody(response, InputStream.class), path);
 
     }
 
     /**
-     * Saves the http response stream to a local file. Designed to be used by invocationCallback implementation.
+     * Saves the http response stream to a local file.
      * @param path a java.nio.file.Path
      */
-    public static void saveToFile(InputStream body, java.nio.file.Path path) {
+    private static void saveToFile(InputStream body, java.nio.file.Path path) throws IOException {
 
         path = path.normalize();
-        if (path.toFile().isDirectory()) {
-            logger.error(path + " is a directory! expecting a file. Data will not be saved");
+        if (!path.toFile().isDirectory()) {
+            Files.copy(body, path, StandardCopyOption.REPLACE_EXISTING);
         } else {
-            File f = path.toFile();
-            try {
-                Files.copy(body, path, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                logger.error("Error creating the file: {}", e.getMessage());
-                logger.error(String.valueOf(e.getStackTrace()));
-                e.printStackTrace();
-            }
+            logger.error(path + " is a directory! expecting a file. Data will not be saved");
         }
 
     }
