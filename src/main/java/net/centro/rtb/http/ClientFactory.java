@@ -65,7 +65,7 @@ public class ClientFactory {
 
         ClientConfig config = new ClientConfig();
 
-        if (builder.getRequestHeaders().get("content-type").toString().contains("multipart")) {
+        if ((builder.getRequestHeaders().get("content-type") != null) && (builder.getRequestHeaders().get("content-type").toString().contains("multipart"))) {
             config.register(MultiPartFeature.class);
         }
 

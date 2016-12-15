@@ -692,7 +692,7 @@ public class HttpConnectorTest extends JerseyTest {
     public void sslAll() throws URISyntaxException {
 
         HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
-                .url("https://localhost:9998/slow")
+                .url("https://httpbin.org/get")
                 .trustAllSslContext()
                 .build()
                 .execute();
