@@ -688,4 +688,14 @@ public class HttpConnectorTest extends JerseyTest {
 
     }
 
+    @Test
+    public void sslAll() throws URISyntaxException {
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://localhost:9998/slow")
+                .trustAllSslContext()
+                .build()
+                .execute();
+    }
+
 }

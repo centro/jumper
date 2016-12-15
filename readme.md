@@ -224,18 +224,27 @@ image = ImageIO.read(http.getResponseBody(InputStream.class));
 ```
 File (Multipart) upload - Parsing a file in a client request.
 ```java
-        final FileDataBodyPart filePart = new FileDataBodyPart("test", new File("uploadFile.gz"));
-        final FormDataMultiPart multiPart = (FormDataMultiPart) new FormDataMultiPart()
-                .bodyPart(filePart);
+final FileDataBodyPart filePart = new FileDataBodyPart("test", new File("uploadFile.gz"));
+final FormDataMultiPart multiPart = (FormDataMultiPart) new FormDataMultiPart()
+        .bodyPart(filePart);
 
-        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
-                .url("http://localhost:9998/multi")
-                .addHeaderProperty("Content-Type", "multipart/form-data")
-                .setBody(multiPart)
-                .setMethod(Http.HttpMethod.POST)
-                .build();
+HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+        .url("http://localhost:9998/multi")
+        .addHeaderProperty("Content-Type", "multipart/form-data")
+        .setBody(multiPart)
+        .setMethod(Http.HttpMethod.POST)
+        .build();
 
-        httpConnector.execute();
+httpConnector.execute();
+```
+Testing mode - trust uncertified HTTPS domains
+```java
+
+HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+        .url("https://localhost:9998/slow")
+        .trustAllSslContext()
+        .build()
+        .execute();
 ```
 #### More info on Jumper
 Review the Javadoc documentation and the github.io page.
