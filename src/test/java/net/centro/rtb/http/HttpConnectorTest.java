@@ -5,7 +5,12 @@ import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import org.glassfish.grizzly.compression.zip.GZipEncoder;
 import org.glassfish.jersey.client.filter.EncodingFeature;
+import org.glassfish.jersey.media.multipart.*;
+import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.message.internal.EntityInputStream;
+import org.glassfish.jersey.message.internal.ReaderWriter;
+import org.glassfish.jersey.server.ContainerException;
+import org.glassfish.jersey.server.ContainerRequest;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.junit.Assert;
@@ -16,6 +21,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.rules.TemporaryFolder;
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
+import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
 import javax.ws.rs.client.InvocationCallback;
@@ -48,9 +54,10 @@ public class HttpConnectorTest extends JerseyTest {
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
+    @Singleton
     @Provider
     @Path("/")
-    public static class testResource {
+    public static class testResource {//implements ContainerRequestFilter {
         @GET
         @Path("slow")
         public Response getHelloSlow() {
@@ -111,17 +118,39 @@ public class HttpConnectorTest extends JerseyTest {
             return Response.status(201).entity(calc.getA()+calc.getB()).build();
         }
 
+        @POST
+        @Path("multi")
+        @Consumes(MediaType.MULTIPART_FORM_DATA)
+        public void multi(@FormDataParam("test") InputStream uploadedInputStream,
+                                @FormDataParam("test") FormDataContentDisposition fileDetails) throws IOException {
+
+            System.out.println("test");
+            System.out.println("File ==> " + fileDetails);
+            System.out.println(CharStreams.toString(new InputStreamReader(uploadedInputStream)));
+
+            //return Response.status(201).build();
+        }
+
+//        @Override
+//        public void filter(ContainerRequestContext containerRequestContext) throws IOException {
+//            System.out.println("=> ");
+//            System.out.println("=> " + containerRequestContext.getHeaders());
+//
+//        }
     }
+
 
     @Provider
     public static class GZipInterceptor implements ReaderInterceptor {
         @Override
         public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException {
-            System.out.println(context.getHeaders());
+            System.out.println("=> " + context.getHeaders());
             List<String> header = context.getHeaders().get("Content-Encoding");
             // decompress gzip stream only
             if (header != null && header.contains("gzip"))
+                System.out.println("decompressing GZIP");
                 context.setInputStream(new GZIPInputStream(context.getInputStream()));
+            System.out.println("decompressed");
             return context.proceed();
         }
 
@@ -166,7 +195,9 @@ public class HttpConnectorTest extends JerseyTest {
         return new ResourceConfig(testResource.class)
                 .packages("org.glassfish.jersey.examples.jackson")
                 .register(JacksonFeature.class)
-                .register(GZipInterceptor.class)
+                //.register(GZipInterceptor.class)
+                .register(MultiPartFeature.class)
+
     ;}
 
     @Test
@@ -206,8 +237,8 @@ public class HttpConnectorTest extends JerseyTest {
                 .addHeaderProperty("Content-Type", "application/json")
                 .build()
                 .execute();
-        int b = httpConnector.getResponseBody(Integer.class);
-        assertTrue(httpConnector.getResponseBody(Integer.class).equals(10));
+        Integer b = Integer.valueOf(httpConnector.getResponseBody());
+        assertTrue(b.equals(10));
     }
 
     @Test
@@ -630,6 +661,31 @@ public class HttpConnectorTest extends JerseyTest {
         response.getHeaders();
         HttpConnector.getResponseBody(response, String.class);
         response.getStatusInfo();
+    }
+
+    @Ignore
+    @Test
+    public void multiPart() throws URISyntaxException {
+
+//        final MultiPart multiPart = new MultiPart()
+//                .bodyPart(new BodyPart().entity("hello"))
+//                //.bodyPart(new BodyPart("<a>abc</a>", MediaType.APPLICATION_XML_TYPE))
+//                .bodyPart(new BodyPart("\"2\":\"3\"", MediaType.APPLICATION_JSON_TYPE));
+
+        final FileDataBodyPart filePart = new FileDataBodyPart("test", new File("/Users/ofir.gal/test.txt"));
+        final FormDataMultiPart multiPart = (FormDataMultiPart) new FormDataMultiPart()
+                .bodyPart(filePart);
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("http://localhost:9998/multi")
+                .addHeaderProperty("Content-Type", "multipart/form-data")
+                .setBody(multiPart)
+                .setMethod(Http.HttpMethod.POST)
+                .build();
+
+        httpConnector.execute();
+
+
     }
 
 }

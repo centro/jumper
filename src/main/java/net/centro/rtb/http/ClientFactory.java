@@ -62,7 +62,9 @@ public class ClientFactory {
     private static Client createNewClient(HttpConnectorBuilder builder) {
 
         ClientConfig config = new ClientConfig();
-
+        //******
+                      //  config.register(MultiPartFeature.class);
+        //******
         switch (builder.getCompressionEncoding()) {
             case GZIP:
                 config.register(GZIPWriterInterceptor.class);
