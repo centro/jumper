@@ -12,6 +12,7 @@ import org.glassfish.jersey.client.filter.EncodingFeature;
 import org.glassfish.jersey.client.filter.EncodingFilter;
 import org.glassfish.jersey.grizzly.connector.GrizzlyConnectorProvider;
 import org.glassfish.jersey.jetty.connector.JettyConnectorProvider;
+import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.message.filtering.EntityFilteringFeature;
 import org.glassfish.jersey.message.internal.MessagingBinders;
@@ -20,6 +21,7 @@ import org.glassfish.jersey.netty.connector.NettyConnectorProvider;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.WriterInterceptor;
@@ -62,9 +64,11 @@ public class ClientFactory {
     private static Client createNewClient(HttpConnectorBuilder builder) {
 
         ClientConfig config = new ClientConfig();
-        //******
-                      //  config.register(MultiPartFeature.class);
-        //******
+
+        if (builder.getRequestHeaders().get("content-type").toString().contains("multipart")) {
+            config.register(MultiPartFeature.class);
+        }
+
         switch (builder.getCompressionEncoding()) {
             case GZIP:
                 config.register(GZIPWriterInterceptor.class);

@@ -5,15 +5,10 @@ import org.glassfish.jersey.message.internal.EntityInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -21,7 +16,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
 /**
@@ -73,13 +67,13 @@ public class HttpConnector {
         path = builder.getPath();
         syncType = builder.getSyncType();
         httpMethod = (builder.getHttpMethod() != null) ? builder.getHttpMethod() : Http.HttpMethod.GET;
-        reqProperties = builder.getReqProperties();
+        reqProperties = builder.getRequestHeaders();
         invocationCallback = processCallback(builder.getInvocationCallback());
         requestBody = builder.getBody();
-        if (reqProperties.get("Content-Type") != null) {
-            mediaType = MediaType.valueOf(reqProperties.get("Content-Type").get(0).toString());
+        if (reqProperties.get("content-type") != null) {
+            mediaType = MediaType.valueOf(reqProperties.get("content-type").get(0).toString());
         }
-        builder.getReqProperties().add("User-Agent", "http-client" + userAgentCounter++);
+        builder.getRequestHeaders().add("user-agent", "http-client" + userAgentCounter++);
 
         client = ClientFactory.getClient(builder);
         WebTarget target = client.target(url);
@@ -87,7 +81,7 @@ public class HttpConnector {
         invoke.headers(reqProperties);
         HttpConnectorCookieManager.setCookies(invoke);
 
-        logger.debug("\nHTTP REQUEST:" + builder.getUrl().toString() + " \n|BODY| " + builder.getBody() + " \n|METHOD| " + builder.getHttpMethod() + " \n|HEADER| " + map2String(builder.getReqProperties()) + " \n|COOKIES| " + map2String(HttpConnectorCookieManager.getCookies()) + "\n");
+        logger.debug("\nHTTP REQUEST:" + builder.getUrl().toString() + " \n|BODY| " + builder.getBody() + " \n|METHOD| " + builder.getHttpMethod() + " \n|HEADER| " + map2String(builder.getRequestHeaders()) + " \n|COOKIES| " + map2String(HttpConnectorCookieManager.getCookies()) + "\n");
 
     }
 

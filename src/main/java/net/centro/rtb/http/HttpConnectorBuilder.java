@@ -2,7 +2,6 @@ package net.centro.rtb.http;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.client.spi.ConnectorProvider;
@@ -42,7 +41,7 @@ public class HttpConnectorBuilder {
     private URI uri;
     private String url;
     private Object body;
-    private MultivaluedMap<String, Object> reqProperties = new MultivaluedHashMap<>();
+    private MultivaluedMap<String, Object> requestHeaders = new MultivaluedHashMap<>();
     private Http.HttpProtocol connType;
     private Http.HttpMethod httpMethod = null;
     private Http.SyncType syncType = Http.SyncType.SYNC;
@@ -237,7 +236,7 @@ public class HttpConnectorBuilder {
      * @return Builder
      */
     public HttpConnectorBuilder addHeaderProperty(String key, String value) {
-        reqProperties.add(key, value);
+        requestHeaders.add(key.toLowerCase(), value.toLowerCase());
         return this;
     }
 
@@ -398,8 +397,8 @@ public class HttpConnectorBuilder {
         return body;
     }
 
-    public MultivaluedMap<String, Object> getReqProperties() {
-        return reqProperties;
+    public MultivaluedMap<String, Object> getRequestHeaders() {
+        return requestHeaders;
     }
 
     public Http.HttpProtocol getConnType() {
