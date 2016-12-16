@@ -1,7 +1,7 @@
 ## Jumper
 Simplified NIO (non-blocking I/O) HTTP client library with embedded cache.
-Get your code running in just a couple of minutes. Based on the [Jersey](https://github.com/jersey/jersey) library. Highly efficient and scalable with seamless client caching. <br/>
-<br/>Reasons for choosing Jumper:
+Get your code running in just a couple of minutes. Based on the [Jersey](https://github.com/jersey/jersey) library. Highly efficient and scalable with seamless client caching.
+Reasons for choosing Jumper:
 * Easy to read (and write) with a simplified builder client.
 * Enforce performance [best practices.](https://blogs.oracle.com/japod/entry/how_to_use_jersey_client)
 * Switch between Apache, Jetty, Netty, Grizzly, HttpUrlConnector implementation with an easy enum selection.
@@ -17,18 +17,14 @@ and ready-to-use library that guarantees a high standard of performance and read
 Jumper's ultimate goal is to encapsulate, simplify, and facilitate all http client concerns within a
 Java application.
 
-Choose the right library for your team! <br/><br/>
+Choose the right library for your team!
 Your team is new to Jersey or programming http requests? With Jumper you will get :
-<br/>
- 1) Started in just 10 minutes. <br/>
- 2) Best practices in terms of performance are enforced seamlessly. <br/>
- 3) Readability and simplified usability. <br/>
+
+ 1) Started in just 10 minutes.
+ 2) Best practices in terms of performance are enforced seamlessly
+ 3) Readability and simplified usability.
  4) Simplified non-blocking I/O.
  5) Simplfied compression & seamless de-compression of gzip and deflate encoding.
-
-
-
-
 
 ##### Compatibility
 Java 8+
