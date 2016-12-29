@@ -50,7 +50,7 @@ methods for collecting metrics and instrumenting various entities.
 * `Http` - a collection of library enums.
 * `HttpConnectorCookieManager` - seamless cookies management.
 
-Please see Javadoc comments for these classes to get a better grasp of them.
+Please see [Javadoc](https://centro.github.io/jumper/docs) comments for these classes to get a better grasp of them.
 
 #### Installation
 Maven
