@@ -34,10 +34,7 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -124,7 +121,6 @@ public class HttpConnectorTest extends JerseyTest {
         public void multi(@FormDataParam("test") InputStream uploadedInputStream,
                                 @FormDataParam("test") FormDataContentDisposition fileDetails) throws IOException {
 
-            System.out.println("test");
             System.out.println("File ==> " + fileDetails);
             System.out.println(CharStreams.toString(new InputStreamReader(uploadedInputStream)));
 
@@ -139,30 +135,6 @@ public class HttpConnectorTest extends JerseyTest {
 //        }
     }
 
-
-    @Provider
-    public static class GZipInterceptor implements ReaderInterceptor {
-        @Override
-        public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException {
-            System.out.println("=> " + context.getHeaders());
-            List<String> header = context.getHeaders().get("Content-Encoding");
-            // decompress gzip stream only
-            if (header != null && header.contains("gzip"))
-                System.out.println("decompressing GZIP");
-                context.setInputStream(new GZIPInputStream(context.getInputStream()));
-            System.out.println("decompressed");
-            return context.proceed();
-        }
-
-//        @Override
-//        public void aroundWriteTo(WriterInterceptorContext context) throws IOException, WebApplicationException {
-//            System.out.println(context.getHeaders());
-//            context.setOutputStream(new GZIPOutputStream(context.getOutputStream()));
-//            context.getHeaders().add("Content-Encoding", "gzip");
-//            System.out.println(context.getHeaders());
-//            context.proceed();
-//        }
-    }
 
     private static class Calc {
         int a,b;
@@ -509,7 +481,7 @@ public class HttpConnectorTest extends JerseyTest {
 
         httpConnector.execute();
 
-        Thread.sleep(SLOW+1000);
+        Thread.sleep(SLOW+1500);
 
         assertTrue(httpConnector.getResponseCode() == 200);
         assertTrue(httpConnector.geResponseTime() > SLOW);
@@ -529,109 +501,69 @@ public class HttpConnectorTest extends JerseyTest {
 
     }
 
-    @Ignore
-    @Test
-    public void testGzipDecompress() throws URISyntaxException, IOException {
-
-        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
-                .url("https://httpbin.org/gzip")
-                .setMethod(Http.HttpMethod.GET)
-                .build()
-                .execute();
-
-        System.out.println(httpConnector.getResponseBody());
-
-        System.out.println(httpConnector.getRawResponse().getHeaderString("Content-Encoding"));
-        System.out.println(httpConnector.getResponseBody(InputStream.class));
-        System.out.println(CharStreams.toString(new InputStreamReader(httpConnector.getResponseBody(InputStream.class))));
-    }
-
-    @Test
-    public void testGzipRequest() throws URISyntaxException, IOException {
-
-        String body = ("{\"a\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\",\"b\":\"5\"}");
 
 
-        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
-                .url("http://localhost:9998/gzip")
-                .setMethod(Http.HttpMethod.POST)
-                .addHeaderProperty("Content-Type", "application/json")
-                .setBody(body)
-                .compress(Http.Encoding.GZIP)
-                .build();
-
-        httpConnector.execute();
-
-        System.out.println(httpConnector.getResponseBody());
-        System.out.println(httpConnector.getResponseCode());
-        System.out.println(httpConnector.getResponseMessage());
-
-    }
-
-
-    @Ignore
-    @Test
-    public void testDeflate() throws URISyntaxException, IOException {
-
-
-        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
-                .url("https://httpbin.org/deflate")
-                .setMethod(Http.HttpMethod.GET)
-                .compress(Http.Encoding.DEFLATE)
-                .build()
-                .execute();
-
-        System.out.println(httpConnector.getRawResponse().getMediaType());
-        System.out.println(httpConnector.getRawResponse().getHeaders());
-        System.out.println(httpConnector.getRawResponse().getHeaderString("Content-Encoding"));
-        System.out.println(CharStreams.toString(new InputStreamReader(httpConnector.getResponseBody(InputStream.class))));
-
-    }
-
-    @Ignore
     @Test
     public void testJson() throws URISyntaxException {
 
         HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://httpbin.org/get")
-                .build()
-                .execute();
-        System.out.println(httpConnector.getResponseBody(ObjectNode.class).get("headers").get("User-Agent"));
-        ObjectNode objectNode = httpConnector.getResponseBody(ObjectNode.class);
-        assertTrue(objectNode.has("headers"));
+                .build();
+
+        try {
+            httpConnector.execute();
+            System.out.println(httpConnector.getResponseBody(ObjectNode.class).get("headers").get("User-Agent"));
+            ObjectNode objectNode = httpConnector.getResponseBody(ObjectNode.class);
+            assertTrue(objectNode.has("headers"));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.fillInStackTrace());
+        }
+
+
     }
 
-    @Ignore
     @Test
     public void testXML() throws URISyntaxException {
 
         HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://httpbin.org/xml")
-                .build()
-                .execute();
+                .build();
 
-        System.out.println(httpConnector.getResponseBody(String.class));
+        try {
+            httpConnector.execute();
+            System.out.println(httpConnector.getResponseBody(String.class));
+            Assert.assertTrue(httpConnector.getResponseBody().contains("xml"));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.fillInStackTrace());
+        }
+
+
     }
 
-    @Ignore
     @Test
     public void testJPG() throws URISyntaxException {
 
         HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://httpbin.org/image/jpeg")
-                .build()
-                .execute();
+                .build();
 
-        BufferedImage image = null;
         try {
-            image = ImageIO.read(httpConnector.getResponseBody(InputStream.class));
-        } catch (IOException e) {
-            e.printStackTrace();
+            httpConnector.execute();
+            BufferedImage image = null;
+            try {
+                image = ImageIO.read(httpConnector.getResponseBody(InputStream.class));
+                System.out.println(image);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.fillInStackTrace());
         }
-        System.out.println(image);
     }
 
-    @Ignore
     @Test
     public void testRedirect() throws URISyntaxException, IOException {
 
@@ -641,13 +573,15 @@ public class HttpConnectorTest extends JerseyTest {
                 .follow_redirect(true)
                 .setConnectorProvider(Http.ConnectorProvider.Apache)
                 .setConnectTimeout(10000)
-                .build()
-                .execute();
+                .build();
 
-        System.out.println(httpConnector.getResponseBody());
-
-        Assert.assertTrue(httpConnector.getResponseBody().length() > 100);
-
+        try {
+            httpConnector.execute();
+            Assert.assertTrue(httpConnector.getResponseBody().length() > 100);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.fillInStackTrace());
+        }
     }
 
     @Test
@@ -663,30 +597,7 @@ public class HttpConnectorTest extends JerseyTest {
         response.getStatusInfo();
     }
 
-    @Ignore
-    @Test
-    public void multiPart() throws URISyntaxException {
 
-//        final MultiPart multiPart = new MultiPart()
-//                .bodyPart(new BodyPart().entity("hello"))
-//                //.bodyPart(new BodyPart("<a>abc</a>", MediaType.APPLICATION_XML_TYPE))
-//                .bodyPart(new BodyPart("\"2\":\"3\"", MediaType.APPLICATION_JSON_TYPE));
-
-        final FileDataBodyPart filePart = new FileDataBodyPart("test", new File("/Users/ofir.gal/test.txt"));
-        final FormDataMultiPart multiPart = (FormDataMultiPart) new FormDataMultiPart()
-                .bodyPart(filePart);
-
-        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
-                .url("http://localhost:9998/multi")
-                .addHeaderProperty("Content-Type", "multipart/form-data")
-                .setBody(multiPart)
-                .setMethod(Http.HttpMethod.POST)
-                .build();
-
-        httpConnector.execute();
-
-
-    }
 
     @Test
     public void sslAll() throws URISyntaxException {
