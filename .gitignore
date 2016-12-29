@@ -11,3 +11,4 @@ build
 gradle.properties
 *.log
 .DS_Store
+_layouts
