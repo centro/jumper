@@ -181,7 +181,7 @@ public class ClientFactory {
     }
 
     @Provider
-    public static class GZIPWriterInterceptor implements WriterInterceptor {
+    private static class GZIPWriterInterceptor implements WriterInterceptor {
 
         @Override
         public void aroundWriteTo(WriterInterceptorContext context)
@@ -198,7 +198,7 @@ public class ClientFactory {
     }
 
     @Provider
-    public static class DeflateWriterInterceptor implements WriterInterceptor {
+    private static class DeflateWriterInterceptor implements WriterInterceptor {
 
         @Override
         public void aroundWriteTo(WriterInterceptorContext context)
