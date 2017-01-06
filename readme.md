@@ -103,7 +103,7 @@ HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
 httpConnector.execute();
 
 // Object mapping
-System.out.println(httpConnector.getResponseBody(MyObject.class));
+MyObject myObject = httpConnector.getResponseBody(MyObject.class);
 
 // GenerticType mapping
 GenericType<List<Integer>> type = new GenericType<List<Integer>>() {};
