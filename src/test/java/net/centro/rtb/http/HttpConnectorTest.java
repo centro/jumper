@@ -1,5 +1,6 @@
 package net.centro.rtb.http;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
@@ -35,6 +36,8 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -127,6 +130,15 @@ public class HttpConnectorTest extends JerseyTest {
             //return Response.status(201).build();
         }
 
+        @GET
+        @Path("list")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getList() {
+            List<Integer> l = new ArrayList<>(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
+            return Response.status(200).entity(l).build();
+        }
+
+
 //        @Override
 //        public void filter(ContainerRequestContext containerRequestContext) throws IOException {
 //            System.out.println("=> ");
@@ -193,6 +205,7 @@ public class HttpConnectorTest extends JerseyTest {
         httpConnector = HttpConnectorBuilder.newBuilder()
                 .setConnectorProvider(Http.ConnectorProvider.HttpUrlConnector)
                 .url("http://localhost:9998/fast")
+                .setConnectorProvider(Http.ConnectorProvider.Apache)
                 .build()
                 .execute();
         assertTrue(httpConnector.getResponseBody(String.class).equals("Hello fast"));
@@ -607,6 +620,28 @@ public class HttpConnectorTest extends JerseyTest {
                 .trustAllSslContext()
                 .build()
                 .execute();
+    }
+
+    @Test
+    public void testGenericType() throws URISyntaxException {
+
+        HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("http://localhost:9998/list")
+                .build()
+                .execute();
+
+
+        GenericType<List<Integer>> type = new GenericType<List<Integer>>() {};
+        List<Integer> l = httpConnector.getResponseBody(type);
+
+        // testing parsing of cached response
+        l = httpConnector.getResponseBody(type);
+        l = httpConnector.getResponseBody(type);
+
+        System.out.println(l + " size:" + l.size());
+
+        Assert.assertEquals(10, l.size());
+
     }
 
 }

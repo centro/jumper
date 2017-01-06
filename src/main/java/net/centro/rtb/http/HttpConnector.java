@@ -281,6 +281,47 @@ public class HttpConnector {
 
     /**
      * Returns the http response body.
+     * @param type the GenericType the response should be mapped to. (Ex. getResponseBody(new GenericType&lt;List&lt;Integer&gt;&gt;() {}))
+     * @param <T> Generic type
+     * @return Response body object as the generic parameter type.
+     */
+    public <T> T getResponseBody(GenericType<T> type) {
+
+        if (responseBody != null) {
+            return (T) responseBody;
+        }
+
+        try {
+            if ((response != null && !response.hasEntity()) || (future != null && !future.get().hasEntity())) {
+                String response = "Empty response: " + getResponseCode() + " " +  getResponseMessage();
+                logger.warn(response);
+                responseBody = response;
+                return null;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        }
+
+        if (syncType == Http.SyncType.ASYNC) {
+            try {
+                response = future.get();
+                responseBody = response.readEntity(type);
+
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            responseBody = response.readEntity(type);
+        }
+
+        return (T) responseBody;
+    }
+
+    /**
+     * Returns the http response body.
      * @param tClass the type of object the response should be mapped to. (Ex. getResponseBody(String.class))
      * @param <T> Generic type
      * @return Response body object as the generic parameter type.
@@ -318,7 +359,6 @@ public class HttpConnector {
             }
         } else {
             responseBody = response.readEntity(tClass);
-            //return ((T) responseBody);
         }
 
         if (tClass.isAssignableFrom(InputStream.class)) {
