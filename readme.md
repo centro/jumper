@@ -81,7 +81,7 @@ The library contains a substantial amount of Javadoc comments. These should be a
 
 Simple Get request
 
-~~~
+~~~java
 HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://github.com/centro")
                 .build();
@@ -92,11 +92,10 @@ System.out.println(httpConnector.getResponseBody());
 
 //getResponseBody() parse response body to a String
 ~~~
-{: .language-java}
 
 Get request with response mapping
 
-~~~
+~~~java
 HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
                 .url("https://github.com/centro")
                 .build();
@@ -110,7 +109,6 @@ System.out.println(httpConnector.getResponseBody(MyObject.class));
 GenericType<List<Integer>> type = new GenericType<List<Integer>>() {};
 List<Integer> list = httpConnector.getResponseBody(type);
 ~~~
-{: .language-java}
 
 Post request
 
