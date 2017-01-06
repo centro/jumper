@@ -94,6 +94,24 @@ System.out.println(httpConnector.getResponseBody());
 ~~~
 {: .language-java}
 
+Get request with response mapping
+
+~~~
+HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+                .url("https://github.com/centro")
+                .build();
+
+httpConnector.execute();
+
+// Object mapping
+System.out.println(httpConnector.getResponseBody(MyObject.class));
+
+// GenerticType mapping
+GenericType<List<Integer>> type = new GenericType<List<Integer>>() {};
+List<Integer> list = httpConnector.getResponseBody(type);
+~~~
+{: .language-java}
+
 Post request
 
 ~~~
