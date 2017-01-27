@@ -283,6 +283,17 @@ HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
         .execute();
 ~~~
 
+Non-ASCII URL - encoding to UTF-8 
+
+~~~java
+String url = "http://spain.es/geo?city=" + UriComponent.encode("Anyós", UriComponent.Type.QUERY);
+
+HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
+        .url(url)
+        .build()
+        .execute();
+~~~
+
 #### More info on Jumper
 Review the Javadoc documentation and the github.io page.
 If you run into any issues or have questions, ask at [ofir.gal@centro.net](mailto:ofir.gal@centro.net)
