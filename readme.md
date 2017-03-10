@@ -62,7 +62,6 @@ Maven
   <version>${jumper-version}</version>
 </dependency>
 ~~~~
-{: .language-xml}
 
 Gradle
 
@@ -71,7 +70,6 @@ dependencies {
   compile "net.centro.rtb:jumper:${jumper-version}"
 }
 ~~~
-{: .language-groovy}
 
 #### Javadoc
 The library contains a substantial amount of Javadoc comments. These should be available in your IDE, once you declare a dependency on Jumper via Maven or Gradle.
@@ -123,7 +121,6 @@ HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
 
 httpConnector.execute();
 ~~~
-{: .language-java}
 
 File download request
 (saveToFile() support both Path and String parameters)
@@ -140,7 +137,6 @@ http.execute();
 
 http.saveToFile();
 ~~~
-{: .language-java}
 
 **Asyncronized requests**
 
@@ -156,7 +152,6 @@ httpConnector.execute();
 
 MyObject myObject = http.getResponseBody(myObject.class);
 ~~~
-{: .language-java}
 
 
 
