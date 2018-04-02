@@ -290,5 +290,5 @@ HttpConnector httpConnector = HttpConnectorBuilder.newBuilder()
 ~~~
 
 #### More info on Jumper
-Review the Javadoc documentation and the github.io page.
+Review the [Javadoc](https://centro.github.io/jumper/docs) documentation and the github.io page.
 If you run into any issues or have questions, ask at [ofir.gal@centro.net](mailto:ofir.gal@centro.net)
